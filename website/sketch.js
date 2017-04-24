@@ -1,14 +1,30 @@
 function setup() {
-  createCanvas(800, 600);
-  drawData();
+  // createCanvas(800, 600);
   console.log('running...')
 
   var button = select('#submit');
   button.mousePressed(submitWord);
+
+  var analyzeButton = select('#analyze');
+  analyzeButton.mousePressed(analyzeThis);
 }
 
-function drawData() {
-  loadJSON('/all', gotData);
+function analyzeThis() {
+  var txt = select('#textinput').value();
+  // console.log(txt);
+  var data = {
+    text: txt
+  }
+  // console.log(data);
+  httpPost('/analyze', data, 'json', dataPosted, postErr);
+}
+
+function dataPosted(result) {
+  console.log(result);
+}
+
+function postErr(err) {
+  console.log(result);
 }
 
 function submitWord() {
@@ -19,21 +35,5 @@ function submitWord() {
 
   function finished(data) {
     // console.log(data);
-    drawData();
   }
-}
-
-function gotData(data) {
-  // console.log(data);
-  background(51);
-  var keys = Object.keys(data);
-  keys.forEach(function (item) {
-    var word = item;
-    var score = data[item];
-    var x = Math.random(width) * 800;
-    var y = Math.random(height) * 600;
-    fill(255);
-    textSize(25);
-    text(word, x, y);
-  });
 }

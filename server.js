@@ -1,11 +1,15 @@
 var fs = require('fs');
 var data = fs.readFileSync('words.json');
+var afinnData = fs.readFileSync('afinn111.json');
 var words = JSON.parse(data);
-console.log(words);
+// console.log(words);
+var afinn = JSON.parse(afinnData);
 
 console.log("Server is starting");
 
 var express = require('express');
+var bodyParser = require('body-parser');
+var cors = require('cors');
 
 var app = express();
 var server = app.listen(3000, listening);
@@ -16,6 +20,14 @@ function listening() {
 
 // use express' ability to host static files
 app.use(express.static('website'));
+
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }))
+
+// parse application/json
+app.use(bodyParser.json())
+// allow cross orgin request
+app.user(cors());
 
 // routes
 app.get('/add/:word/:score?', addWord);
@@ -49,11 +61,55 @@ function addWord(request, response) {
   }
 }
 
+app.post('/analyze', analyzeThis);
+
+function analyzeThis(request, response) {
+  // console.log(request.body);
+  var txt = request.body.text;
+  var tokens = txt.split(/\W+/);
+  var totalScore = 0;
+  var found = false;
+  var wordList = [];
+  // console.log(words, afinn);
+  tokens.forEach(function (token) {
+    var score = 0;
+    if (words.hasOwnProperty(token)) {
+      score = Number(words[token]);
+      found = true;
+    } else if (afinn.hasOwnProperty(token)) {
+      score = Number(afinn[token]);
+      found = true;
+    }
+    if (found) {
+      wordList.push({
+        word: token,
+        score: score
+      });
+    }
+    totalScore += score;
+    // console.log(token);
+  });
+
+  var comp = totalScore / tokens.length;
+
+  var reply = {
+    score: totalScore,
+    comparative: comp,
+    words: wordList
+  }
+  response.send(reply);
+}
+
 app.get('/all', sendAll);
 
 // express will automatically send js object as json
 function sendAll(request, response) {
-  response.send(words);
+  // changes response of server to return both lists.
+  var data = {
+    additional: words,
+    afinn: afinn
+  }
+  response.send(data);
 }
 
 app.get('/search/:word', searchWord);
