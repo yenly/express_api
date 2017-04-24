@@ -37,7 +37,7 @@ function addWord(request, response) {
     words[word] = score;
 
     var data = JSON.stringify(words, null, 2); // 2 spaces for indent
-    fs.writeFile('words.json', words, finished);
+    fs.writeFile('words.json', data, finished);
 
     function finished(err) {
       console.log('all set.');
