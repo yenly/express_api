@@ -1,11 +1,7 @@
-var words = {
-  "rainbow": 5,
-  "cat": 3,
-  "science": 8,
-  "doom": -3,
-  "stress": -10,
-  "gloom": -2
-}
+var fs = require('fs');
+var data = fs.readFileSync('words.json');
+var words = JSON.parse(data);
+console.log(words);
 
 console.log("Server is starting");
 
@@ -36,13 +32,21 @@ function addWord(request, response) {
     reply = {
       msg: "Score is required."
     }
+    response.send(reply);
   } else {
     words[word] = score;
-    reply = {
-      msg: "Thank you for your word."
+
+    var data = JSON.stringify(words, null, 2); // 2 spaces for indent
+    fs.writeFile('words.json', words, finished);
+
+    function finished(err) {
+      console.log('all set.');
+      reply = {
+        msg: "Thank you for your word."
+      }
+      response.send(reply);
     }
   }
-  response.send(reply);
 }
 
 app.get('/all', sendAll);
